@@ -48,8 +48,10 @@ $ ./bin/ftpfm  # launch on default port 9090
 
 ### ScreenShot 
 
-<img src="screenshots/ftpfm-1.png" width="132"  height="" alt="ftpfm" style="margin-right:20px;border-radius:35px"  align="center"/>
-### --- Happy Hacking Folks --- 
+<img src="screenshots/ftpfm-1.png" width="500"  height="" alt="ftpfm" style="margin-right:20px;border-radius:35px;border-color:'red'"  align="center"/>
+
+
+**_Happy Hacking Folks_**
 
 Feel free to contribute.
 
