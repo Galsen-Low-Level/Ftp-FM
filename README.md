@@ -19,9 +19,11 @@ NOTE: By default, if the target directory contains an `.html` or `.htm` index, p
     + lib/   - hold the needed library 
 
 ### Prelude  
-    ```
-     $ git clone https://github.com/Galsen-Low-Level/Ftp-FM --recursive 
-    ```
+
+```bash 
+$ git clone https://github.com/Galsen-Low-Level/Ftp-FM --recursive 
+```
+
 ### BUILD 
 ---  
 The default build tool is `Cmake` 
@@ -44,10 +46,14 @@ $ ./bin/ftpfm -h # to get help
 $ ./bin/ftpfm  # launch on default port 9090 
 ```
 
+### ScreenShot 
+
+<img src="screenshots/ftpfm-1.png" width="132"  height="" alt="ftpfm" style="margin-right:20px;border-radius:35px"  align="center"/>
 ### --- Happy Hacking Folks --- 
 
-Feel free to contribute. 
+Feel free to contribute.
 
-**Made with Passion from Senegal :dizzy:**.  
+We ❤️  Computers at all Levels.
 
-**CC0 1.0 Universal**.
+From Senegal. 🇸🇳
+
