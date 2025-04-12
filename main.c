@@ -83,7 +83,6 @@ void *argparse(int ac  , char * const *av ,  const char * shortopts , struct opt
 }
 #endif
 
-
 //!NOTE  : this is just for annotation  
 #define  pa_args(__name)  ...  
 
@@ -91,7 +90,6 @@ struct sigaction  sa;
 
 static __attribute__((noreturn)) void  sigh(int s ) 
 {
-  printf("im out good bye\n") ; 
   exit(s) ;  
 }
 
@@ -107,7 +105,6 @@ void sighdl(int  nsigs ,    pa_args(multisigals)  )
       sigaction( sig ,  &sa ,  nptr ) ; 
       nsigs+=~(nsigs^nsigs) ; 
     }
-
 
     va_end(ap) ; 
 }
@@ -153,7 +150,6 @@ main(int ac , char **av , char **env)
     
     if (~0 == polling_status) 
     {
-       //warnx("Poll init socket ACK  issue") ; 
        LOGWARN("Poll init socket acknowledgement issues"); 
        goto __htftp_restor ;  
     }
