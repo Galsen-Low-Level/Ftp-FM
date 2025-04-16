@@ -75,7 +75,7 @@ htftp_t *  htftp_start(int  portnumber , htftp_fcfg fconfig , void * extra_argum
   
   config(hf , extra_argument) ; 
   
-  LOGINFO("Serving HTFTP on 0.0.0.0 port %i", portnumber)  ;  
+  LOGINFO("Serving FTPFM on 0.0.0.0 port %i", portnumber)  ;  
   return hf ;  
 }
 

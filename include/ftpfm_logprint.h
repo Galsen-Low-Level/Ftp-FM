@@ -16,7 +16,7 @@
 # define nptr NULL 
 
 #define  FLOG(__severity_level ,  __mesg) \
-    fmtmsg(MM_CONSOLE|MM_PRINT , "HTFTP:v1.0" , __severity_level , __mesg ,0/* no action */, 0/* no tag*/)
+    fmtmsg(MM_CONSOLE|MM_PRINT , "FTPFM:v1.0" , __severity_level , __mesg ,0/* no action */, 0/* no tag*/)
 
 #define  tc_exec(__termcap)  tputs(__termcap , 1 , putchar)  
 #define  tc_exec_p(__termcaparm) tc_exec(tiparm(__termcaparm))  
