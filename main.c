@@ -135,7 +135,7 @@ main(int ac , char **av , char **env)
   htftp_t *hf  = htftp_start(argobj._port,nptr, nptr); 
   if (!hf) 
   {
-     error(pstatus=EXIT_FAILURE, 0, "fail to start htftp\n"); 
+     error(pstatus=EXIT_FAILURE, 0, "fail to start ftpfm\n"); 
      goto  __prolog; 
   } 
   
@@ -171,7 +171,7 @@ main(int ac , char **av , char **env)
     char *request_content  = htftp_read_content(target_file, htftp_request_raw_buffer ) ;  
      
     if (htftp_transmission(user_agent_socket , request_content)) 
-      LOGERR("htftp transmission error") ; 
+      LOGERR("ftpfm transmission error") ; 
 
     if(htftp_header)
       free(htftp_header) , htftp_header = 0 ; 
