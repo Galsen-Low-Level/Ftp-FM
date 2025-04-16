@@ -22,9 +22,24 @@ NOTE: By default, if the target directory contains an `.html` or `.htm` index, p
 
 ```bash 
 $ git clone https://github.com/Galsen-Low-Level/Ftp-FM --recursive 
-```
+``` 
+ 
+### Quick assessment 
 
-### BUILD 
+This section is for those who want to get a quick overview of the project using Docker. 
+Here's an example: 
+
+```bash                 
+                        ___________
+                        v          v
+$ docker  run   -v ~/Desktop/:/opt/local -p 9090:9090 ftpfm   /ftp-FM/bin/ftpFM  -t /opt/local
+                                   ^---------------------------------------------------^
+```      
+*The contents of the Desktop folder are volume-mounted on /opt/local and the program will point to this folder to display the contents of the volume-mounted folder.* 
+
+
+
+### Build 
 ---  
 The default build tool is `Cmake` 
 
