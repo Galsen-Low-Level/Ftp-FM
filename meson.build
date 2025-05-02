@@ -8,6 +8,9 @@ project('FtpFM', 'c',
 
 pkg=import('pkgconfig')  
 
+libarghlp_proj = subproject('Arghlp')
+libarghlp_dep  = libarghlp_proj.get_variable('arghlp_dep')
+libarghlp_inc  = 'subprojects/Arghlp'
 cc = meson.get_compiler('c')
 
 add_project_arguments(
@@ -60,6 +63,7 @@ source_file_entry='main.c'
 
 executable(meson.project_name() ,
            source_file_entry,
-		   include_directories:[inc_dir],
+		   include_directories:[inc_dir,libarghlp_inc],
            link_with:[ftpfm_so , ftpfm_lp_so], 
+           dependencies:[libarghlp_dep],  
            install : true)
