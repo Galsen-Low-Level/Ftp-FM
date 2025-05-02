@@ -11,13 +11,6 @@
 #if !defined(__GNUC__) 
 # error  "Require GNU C compiler" 
 #endif  
-//! require c11+ standard 
-#if __STDC_VERSION__ < 201112L 
-#define  Atomic   _Atomic 
-# error "required at least c11 standard"
-#else  
-#define  Atomic  
-#endif
 
 #pragma  GCC  diagnostic  ignored "-Wvarargs" 
 

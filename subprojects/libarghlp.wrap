@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/Galsen-Low-Level/Arghlp.git
+revision = HEAD
+depth = 1
