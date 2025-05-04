@@ -15,6 +15,7 @@
 #include <langinfo.h> 
 #include <fmtmsg.h>
 
+#include <sys/sendfile.h> 
 #include <sys/socket.h> 
 #include <sys/stat.h> 
 #include <netinet/in.h>
@@ -47,6 +48,10 @@ struct __htftp_t {
    struct sockaddr_in  *_insaddr; 
    struct pollfd _spoll; 
 };
+
+//!What kind of user agent is used   ? 
+ssize_t  ua_kind = 0 ; 
+
 
 htftp_t *  htftp_start(int  portnumber , htftp_fcfg fconfig , void * extra_argument)   
 {
@@ -110,10 +115,56 @@ void htftp_close(struct  __htftp_t * restrict hf )
    hf=0 ; 
 } 
 
+static void htftp_detect_user_argent(struct  __htftp_request_header_t *  hrq , int  ua_target) 
+{
+
+  struct __ua_t  { 
+     char    _ua_name[5];  
+     char  * _version;
+     int   _type ; 
+  } ua_identifier = { {0} }  ; 
+
+  char  *needle =  (char *)0 ; 
+
+  if(ua_target & UA_CURL) 
+  {
+     needle = strstr(hrq->user_agent ,  "curl"); 
+     if (needle) 
+     {
+       sprintf(ua_identifier._ua_name ,  "curl");
+       ua_identifier._type =UA_CURL ; 
+       goto __parser ; 
+     }
+  }
+
+  if (ua_target  & UA_WGET) 
+  {
+     needle = strstr(hrq->user_agent ,  "Wget"); 
+     if(!needle) 
+       return ;
+
+    sprintf(ua_identifier._ua_name ,  "wget");
+    ua_identifier._type = UA_WGET ; 
+  }
+
+__parser: 
+  if (strlen(ua_identifier._ua_name) == 0 )  
+    return ; 
+
+  ua_identifier._version =  (needle+strlen(ua_identifier._ua_name))+1 ; 
+  char *sep = strchr(needle ,  (0x2f & 0xff)) ; 
+  if (sep ) *sep = 0x0 ; 
+
+  LOGWARN("\n\t-> Requesting from specifique user agent named :%s version :%s",  ua_identifier._ua_name ,
+      ua_identifier._version) ; 
+
+  ua_kind = ua_identifier._type;  
+
+} 
 static void __use_defconfig(htftp_t  *hf , void *_Nullable xtrargs ) 
 {
   
-
+   //!TODO : move  l18n to logprint module 
    __maybe_unused setlocale(LC_TIME ,"") ;
 
    hf->_insaddr =  &(struct sockaddr_in) { 
@@ -151,8 +202,13 @@ static void __use_defconfig(htftp_t  *hf , void *_Nullable xtrargs )
 htftp_reqhdr_t  *htftp_parse_request(char htftp_rbuff __parmreq)  
 {
    
-   htftp_reqhdr_t  *hrq = malloc(sizeof(*hrq)) ;  
-   assert(hrq) ; 
+   htftp_reqhdr_t  *hrq = malloc(sizeof(*hrq)) ;
+   
+   if (!hrq)
+   {
+     errno= ENOMEM ; 
+     return  (htftp_reqhdr_t *) 0  ; 
+   }
    
    char *rbuff = (char *) htftp_rbuff, header[HTTP_REQUEST_HEADER_LINE][0xff]={0} ,  
         *linefeed=nptr, source[HTTP_REQST_BUFF>>1] = {0}; 
@@ -179,8 +235,12 @@ htftp_reqhdr_t  *htftp_parse_request(char htftp_rbuff __parmreq)
    }  
    
    __maybe_unused explode(&hrq->htftp_hproto ,  *(header+0) ); 
-   memcpy(hrq->server_host ,  (char*)*(header+1) , strlen((char *)*(header+1)) )  ; 
-   memcpy(hrq->user_agent,  (char*)*(header+2) , strlen((char *)*(header+2)) ) ; 
+   memcpy(hrq->server_host ,  (char*)*(header+1) , strlen((char *)*(header+1)) ) ; 
+  
+   //Parsing or performing  user-agent extraction 
+   memcpy(hrq->user_agent,  (char*)*(header+2) , strlen((char *)*(header+2)) ) ;
+
+   htftp_detect_user_argent(hrq , UA_CURL|UA_WGET) ;  
   
    return  hrq ; 
 }
@@ -258,7 +318,7 @@ char *htftp_get_requested_content(htftp_reqhdr_t *htftp_req , char  * path_targe
 
 
 //!  Read  the asked ressource 
-char * htftp_read_content(char *filename , char *content_dump)  
+char * htftp_read_content(int user_agent_fd ,  char *filename , char *content_dump)  
 {
   char content_buffer[HTTP_REQST_BUFF] =  {0} ; 
    
@@ -269,11 +329,13 @@ char * htftp_read_content(char *filename , char *content_dump)
   
   if(is_dir)
   {
-    *is_dir = 0 ;   
+    *is_dir = 0 ; 
+    //! NOTE : cannot  download  directory for special  user agent  
+    ua_kind &=~ ua_kind ; 
     return htftp_list_dirent_content(filename , content_dump) ; 
   } 
   
-  if (access(filename , F_OK| R_OK)) return  nptr ; 
+  if (! (~0 ^ access(filename , F_OK| R_OK)))  return  nptr ; 
   
   int  hyper_text_fd = open(filename , O_RDONLY) ; 
   if (~0 ==  hyper_text_fd) 
@@ -284,14 +346,38 @@ char * htftp_read_content(char *filename , char *content_dump)
   }
   
   size_t   requested_bsize = statops(fstat , hyper_text_fd , st_size);  
-  if (!requested_bsize)  requested_bsize = HTTP_REQST_BUFF ; 
-   
+  if (!requested_bsize)  requested_bsize = HTTP_REQST_BUFF ;
+
+
+
+  //! allow sending  file only if user agent like curl and wget  is used  
+  //! TODO : Migrate this to htftp_transmission function bellow 
+  if (ua_kind != 0)
+  {
+    send(user_agent_fd , HTTP_HEADER_RESPONSE_OK , strlen(HTTP_HEADER_RESPONSE_OK) , 0 ) ; 
+    ssize_t  sended_byte = sendfile(user_agent_fd  , hyper_text_fd , (off_t *)0 , requested_bsize) ; 
+    assert(!(sended_byte ^requested_bsize)) ;  
+    ua_kind&=~ua_kind ;  //!reset 
+  }
   size_t rbyte =  read(hyper_text_fd ,content_buffer , requested_bsize)  ; 
 
   assert(!rbyte^(strlen(content_buffer))) ; 
 
-  close(hyper_text_fd) ; 
+  /*! :NEXTFEAT:
+   *  When special user agent is detected  like curl or wget
+   *  the file size and file descriptor  are embeded in  ua_kind 
+   *  and the closing fd  is defered 
+  if(ua_kind != 0)
+  {
+    ua_kind = (requested_bsize << 4) | hyper_text_fd ; 
+    goto  dumping ; 
 
+  }
+  else 
+   */
+    close(hyper_text_fd) ; 
+
+dumping: 
   memcpy(content_dump , content_buffer ,HTTP_REQST_BUFF); 
   return  content_dump ; 
 }
@@ -302,13 +388,27 @@ int htftp_transmission(int  user_agent_fd,  char content_delivry __parmreq )
   char content_buffer[HTTP_REQST_BUFF] = {0} ; 
   
   htftp_prepare(content_buffer,HTTP_HEADER_RESPONSE_OK  /*! HTTP/1.1 200 OK \r\n\r\n*/
-                               , content_delivry       /*!        CONTENT          */
-                               , STR(CRLF)) ;          /*!       \r\n\r\n          */  
+                               , content_delivry        /*!        CONTENT          */
+                               , STR(CRLF)) ;           /*!       \r\n\r\n          */  
 
-  ssize_t content_bsize  = strlen(content_buffer) ; 
-  //!TODO :  Allow curl agent to download    
-  //         -> use sendfile  if the file is  not index.html  
+  ssize_t content_bsize  = strlen(content_buffer) ;
+
+  /*    
+  if(0 !=  ua_kind)  
+  {
+    int in_fd = (ua_kind &0xf); 
+    size_t fdsize  = (ua_kind >> 4) ; 
+    send(user_agent_fd , HTTP_HEADER_RESPONSE_OK , strlen(HTTP_HEADER_RESPONSE_OK) , 0 ) ; 
+    ssize_t  sended_byte = sendfile(user_agent_fd  ,in_fd, (off_t *)0 , fdsize) ; 
+    
+    assert(!(sended_byte ^fdsize)) ;
+    close(in_fd) ; 
+    ua_kind  &=~ ua_kind ; //!reset  
+  }
+  */
+
   ssize_t sbytes= send(user_agent_fd , content_buffer , sizeof(content_buffer) ,0);  
+
   return  sbytes^sizeof(content_buffer)  ;  
   
 }

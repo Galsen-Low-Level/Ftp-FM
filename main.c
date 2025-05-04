@@ -141,8 +141,9 @@ main(int ac , char **av , char **env)
   
   
   char htftp_request_raw_buffer[HTTP_REQST_BUFF] ={ 0 }; 
-  
-  while (1)  
+  int start_htftp_pollin = 1 ; 
+
+  while (start_htftp_pollin)  
   {  
     bzero(htftp_request_raw_buffer , HTTP_REQST_BUFF) ;  
     int  polling_status =  htftp_polling(hf);  
@@ -161,14 +162,21 @@ main(int ac , char **av , char **env)
       if (!rbytes /* No data  */) 
         goto __htftp_restor ; 
     }
-
+  
+    printf("%s\n" ,  htftp_request_raw_buffer ) ; 
     htftp_reqhdr_t * htftp_header  =htftp_parse_request(htftp_request_raw_buffer) ;  
-    assert(htftp_header) ; 
+    if (!htftp_header)
+    {
+       //LOGFATALITY("Not able to parse request  due to %s ",  strerror(*__errno_location())); 
+       LOGERR("Not able to parse request  due to %s ",  strerror(*__errno_location())); 
+       start_htftp_pollin &=~start_htftp_pollin ; 
+    }
     
+    //!Embed ua type code in user_agent_socket
     void *target_path =  0 < strlen(argobj._path_target)? (void *)&argobj._path_target :  nptr ; 
     char *target_file = htftp_get_requested_content(htftp_header,  (char *)target_path) ;  
     bzero(htftp_request_raw_buffer , HTTP_REQST_BUFF) ;
-    char *request_content  = htftp_read_content(target_file, htftp_request_raw_buffer ) ;  
+    char *request_content  = htftp_read_content(user_agent_socket ,  target_file, htftp_request_raw_buffer ) ;  
      
     if (htftp_transmission(user_agent_socket , request_content)) 
       LOGERR("ftpfm transmission error") ; 

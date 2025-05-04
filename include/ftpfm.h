@@ -69,6 +69,13 @@ enum {
 # define LISTEN_BACKLOG  4 
 #endif 
 
+
+#define UA_CURL   (1 << 1)
+#define UA_WGET   (1 << 2)
+
+#define UA_ALL (UA_CURL|UA_WGET) 
+
+
 //! GET , HOST , USER-AGENT 
 #define HTTP_REQUEST_HEADER_LINE      3 
 #define HTTP_GLOBAL_CONTENT_DISPATCH  3   
@@ -121,6 +128,16 @@ static void  htftp_prepare(char *__restrict__ __global_content , ...) ;
 static void  setup_htftp(struct __htftp_t  *__restrict__ __hf , int __socket_fd , int __portnumber) ; 
 static void  __use_defconfig(struct __htftp_t* __restrict__ __hf , void * __maybe_unused _Nullable __xtrargs) ;
 static char * file_size_human_readable(fobject_t * __restrict__ __fobj); 
+
+/** 
+ * @fn htftp_detect_user_agent(struct __htftp_request_header_t * )
+ * @brief  detect which user agent is making  a request 
+ *         specialy  for curl and wget.
+ * @param  struct __htftp_request_header_t *  -  header information  that hold the user agent  type 
+ * @param  int   -  user agent  target  can be oring  using flag UA_CURL  OR   UA_WGET 
+ * 
+ */
+static void  htftp_detect_user_agent(struct __htftp_request_header_t * __restrict__ __htfpt_rh ,  int __ua_target); 
 static void  append2tablerow(char __item __parmreq,
                                       char __render_buffer  __parmreq, 
                                       char * _Nullable __restrict__ subdirent, 
@@ -134,7 +151,7 @@ htftp_reqhdr_t* htftp_parse_request( char __htftp_buffer __parmreq);
 char * htftp_get_requested_content(htftp_reqhdr_t * __restrict__ __hproto,
                                   char * __restrict__ __target_path); 
 extern void htftp_close(struct  __htftp_t * __restrict__ __hf );
-char * htftp_read_content(char *__restrict__ __filename , char * __restrict__  __dump) ; 
+char * htftp_read_content(int __user_agent , char *__restrict__ __filename , char * __restrict__  __dump) ; 
 int htftp_transmission(int  __user_agent, char  __content_delivry __parmreq) ; 
 fobject_t * file_detail(fobject_t *__restrict__  __fobj ,
                         char *__restrict__ __fitem,
