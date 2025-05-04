@@ -1,4 +1,4 @@
-# Ftp-FM 
+<img src="screenshots/ftpfm-logo-1.png" width="300"  alt="ftpfm-logo" align="center"/>   
 
 
 Serve as a fast local http server and FTP utility.  
@@ -66,11 +66,16 @@ $ ./bin/ftpfm  # launch on default port 9090
 <img src="screenshots/ftpfm-1.png" width="500"  height="" alt="ftpfm" style="margin-right:20px;border-radius:35px;border-color:'red'"  align="center"/>
 
 
-**_Happy Hacking Folks_**
+
+**_Happy Hacking Folks_** 
+
+<img src="screenshots/glls1-logo-svg.png" width="100"  height="" alt="gllogo"  align="right"/>
 
 Feel free to contribute.
 
 We ❤️  Computers at all Levels.
 
 From Senegal. 🇸🇳
+
+
 
