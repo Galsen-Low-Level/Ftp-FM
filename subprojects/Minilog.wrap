@@ -1,0 +1,7 @@
+[wrap-git]
+url = git@github.com:Galsen-Low-Level/Minilog.git
+revision =HEAD
+depth = 1
+
+[provide]
+minilog_dep = minilog_so_decl
