@@ -58,5 +58,5 @@ libarghlp/
 .gitmodules 
 include/config.h 
 subprojects/Arghlp
-subprojects/
+subprojects/Minilog
 subprojects/Arghlp/

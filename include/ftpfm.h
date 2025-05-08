@@ -118,6 +118,17 @@ typedef void(*__htftp_fcfg_t)(struct __htftp_t * __restrict__ ,  void * __maybe_
 #define TIME_ASC 1    //!  time read format  ascii mode    
 #define TIME_NUM 2    //!  time read format  numerical mode 
 
+
+#define htftp_error(__fcall , ...) \
+  do{perror(#__fcall); errx(1 ,  __VA_ARGS__);}while(0)  
+
+
+/* TODO : enable this macro 
+ * #define htftp_errorx(__fcall , ...) \
+  do{perror(#__fcall); LOGFATAL(__VA_ARGS__);}while(0)  
+*/ 
+void htftp_errorx(const char * __fcall , const  char * fmt , ...);
+
 //! For internal use 
 static htftp_protocol_header_t *explode(htftp_protocol_header_t * __hproto, char *__restrict__ __raw_data ) ;  
 static char *htftp_list_dirent_content(char *__ftype ,  char *__dump) ; 
