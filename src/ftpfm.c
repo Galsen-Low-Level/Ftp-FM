@@ -13,7 +13,7 @@
 
 #include <locale.h> 
 #include <langinfo.h> 
-#include <fmtmsg.h>
+
 
 #include <sys/sendfile.h> 
 #include <sys/socket.h> 
@@ -26,7 +26,7 @@
 #include <errno.h> 
 
 #include "ftpfm.h" 
-#include "ftpfm_logprint.h" 
+#include "minilog.h" 
 
 struct __htftp_protocol_header_t 
 {
@@ -52,11 +52,27 @@ struct __htftp_t {
 //!What kind of user agent is used   ? 
 ssize_t  ua_kind = 0 ; 
 
+void htftp_errorx(const char * __fcall , const  char * fmt , ...) 
+{
+  char   htftp_errbuf[1024]= {0}; 
+  size_t len= strlen(__fcall); 
+  memcpy(htftp_errbuf ,  __fcall , len); 
+
+  va_list ap ; 
+  va_start(ap , fmt) ; 
+  
+  vsprintf((htftp_errbuf+len) ,  fmt , ap); 
+  va_end(ap); 
+
+  LOGFATAL("%s", htftp_errbuf) ; 
+}
 
 htftp_t *  htftp_start(int  portnumber , htftp_fcfg fconfig , void * extra_argument)   
 {
-   if(~0 == htftp_lp_setup()) 
+   if(!(~0^ minilog_setup()))  
+   {
      warn("fail to setup log print module ") ; 
+   }
 
   int portnumb = ( 0 >= portnumber) ? DEFAULT_PORT : portnumber ; 
 
@@ -164,9 +180,6 @@ __parser:
 static void __use_defconfig(htftp_t  *hf , void *_Nullable xtrargs ) 
 {
   
-   //!TODO : move  l18n to logprint module 
-   __maybe_unused setlocale(LC_TIME ,"") ;
-
    hf->_insaddr =  &(struct sockaddr_in) { 
      .sin_family = AF_INET, 
      .sin_port = htons(__getportnb(hf)), 
@@ -181,7 +194,7 @@ static void __use_defconfig(htftp_t  *hf , void *_Nullable xtrargs )
  
    if(bind(__getsockfd(hf) ,(SA*)hf->_insaddr  , slen)) 
    {
-     LOGWARN("Binding  error") ;  
+     LOGWARN("Binding  error : %s" , strerror(*__errno_location())) ;   
      close(__getsockfd(hf)); 
      free(hf) ; 
      hf=0;

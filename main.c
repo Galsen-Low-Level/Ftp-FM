@@ -18,11 +18,9 @@
 #include <poll.h> 
 #include <error.h> 
 #include <locale.h> 
-
 #include <signal.h> 
 
 #include "ftpfm.h"
-#include "ftpfm_logprint.h"
 
 
 
@@ -151,7 +149,7 @@ main(int ac , char **av , char **env)
     
     if (~0 == polling_status) 
     {
-       LOGWARN("Poll init socket acknowledgement issues"); 
+       htftp_error(htftp_polling  , "Poll init socker acknowledgement issues") ; 
        goto __htftp_restor ;  
     }
     /*Listen only on incomming data  */
@@ -163,12 +161,10 @@ main(int ac , char **av , char **env)
         goto __htftp_restor ; 
     }
   
-    printf("%s\n" ,  htftp_request_raw_buffer ) ; 
     htftp_reqhdr_t * htftp_header  =htftp_parse_request(htftp_request_raw_buffer) ;  
     if (!htftp_header)
     {
-       //LOGFATALITY("Not able to parse request  due to %s ",  strerror(*__errno_location())); 
-       LOGERR("Not able to parse request  due to %s ",  strerror(*__errno_location())); 
+       htftp_errorx("htftp_parse_request" , "Not able to parse request  due to %s", strerror(*__errno_location())) ; 
        start_htftp_pollin &=~start_htftp_pollin ; 
     }
     
@@ -179,7 +175,7 @@ main(int ac , char **av , char **env)
     char *request_content  = htftp_read_content(user_agent_socket ,  target_file, htftp_request_raw_buffer ) ;  
      
     if (htftp_transmission(user_agent_socket , request_content)) 
-      LOGERR("ftpfm transmission error") ; 
+      htftp_error(htftp_transmission  , "Transmission error!") ; 
 
     if(htftp_header)
       free(htftp_header) , htftp_header = 0 ; 
